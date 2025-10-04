@@ -2,7 +2,7 @@
 set -eo pipefail
 
 GITHUB_REPO="https://raw.githubusercontent.com/rickvanderwolk/pit/main"
-AVAILABLE_SCRIPTS=("ssh-boost" "wifi-powersave-off")
+AVAILABLE_SCRIPTS=("disable-bluetooth" "disable-wifi-powersave" "enable-auto-cleanup" "enable-auto-security-updates" "enable-fail2ban" "enable-firewall" "enable-ssh-boost" "fix-locale")
 
 # Detect if running locally or via curl
 if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
