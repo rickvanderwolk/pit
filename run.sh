@@ -40,3 +40,7 @@ for s in "$@"; do
 
   echo "✓ $s completed"
 done
+
+echo ""
+echo "⚠️  A reboot may be required for all changes to take effect."
+echo "   To reboot, run: sudo reboot"
