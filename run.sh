@@ -1,21 +1,42 @@
 #!/usr/bin/env bash
-set -euo pipefail
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set -eo pipefail
+
+GITHUB_REPO="https://raw.githubusercontent.com/rickvanderwolk/pit/main"
+AVAILABLE_SCRIPTS=("ssh-boost" "wifi-powersave-off")
+
+# Detect if running locally or via curl
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+  # Running locally
+  DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  MODE="local"
+else
+  # Running via curl | bash
+  MODE="remote"
+fi
+
 if [ $# -eq 0 ]; then
   echo "Usage: $0 <script1> [script2 ...]"
-  echo "Available scripts:"
-  ls "$DIR/scripts" | sed 's/\.sh$//' | column
+  echo "Available scripts: ${AVAILABLE_SCRIPTS[*]}"
   exit 1
 fi
+
 for s in "$@"; do
-  FILE="$DIR/scripts/$s.sh"
-  if [ -f "$FILE" ]; then
-    chmod +x "$FILE"
-    echo "▶ Running $s..."
-    "$FILE"
-    echo "✓ $s completed"
-  else
+  if [[ ! " ${AVAILABLE_SCRIPTS[*]} " =~ " ${s} " ]]; then
     echo "❌ Script not found: $s"
+    echo "Available scripts: ${AVAILABLE_SCRIPTS[*]}"
     exit 1
   fi
+
+  echo "▶ Running $s..."
+
+  if [ "$MODE" = "local" ]; then
+    FILE="$DIR/scripts/$s.sh"
+    chmod +x "$FILE"
+    "$FILE"
+  else
+    # Download and execute from GitHub
+    curl -sSL "$GITHUB_REPO/scripts/$s.sh" | bash
+  fi
+
+  echo "✓ $s completed"
 done
