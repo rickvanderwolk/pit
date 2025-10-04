@@ -35,7 +35,7 @@ cd pit
 ### Security
 - **`enable-auto-security-updates`** - Enable automatic security updates (auto-reboot at 03:00 if needed)
 - **`enable-fail2ban`** - Install & configure fail2ban for SSH protection
-- **`enable-firewall`** - Setup UFW firewall (SSH + web ports: 80, 443, 3000, 5000, 8000, 8080)
+- **`enable-firewall`** - Setup UFW firewall (SSH only, add other ports manually)
 
 ### Performance
 - **`disable-bluetooth`** - Disable bluetooth service to save resources
