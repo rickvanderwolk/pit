@@ -2,7 +2,8 @@
 set -eo pipefail
 
 GITHUB_REPO="https://raw.githubusercontent.com/rickvanderwolk/pit/main"
-AVAILABLE_SCRIPTS=("disable-bluetooth" "disable-wifi-powersave" "enable-auto-cleanup" "enable-auto-security-updates" "enable-fail2ban" "enable-firewall" "enable-ssh-boost" "fix-locale")
+AVAILABLE_SCRIPTS=("disable-bluetooth" "disable-wifi-powersave" "enable-auto-cleanup" "enable-auto-security-updates" "enable-fail2ban" "enable-firewall" "enable-ssh-boost" "fix-locale" "enable-overlay" "disable-overlay" "overlay-status")
+OVERLAY_SCRIPTS=("enable-overlay" "disable-overlay" "overlay-status")
 
 # Detect if running locally or via curl
 if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
@@ -20,11 +21,22 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
+# Overlay active: changes to the root fs are lost on reboot
+OVERLAY_ACTIVE=false
+if command -v raspi-config &>/dev/null && [ "$(sudo raspi-config nonint get_overlay_now 2>/dev/null)" = "0" ]; then
+  OVERLAY_ACTIVE=true
+fi
+
 for s in "$@"; do
   if [[ ! " ${AVAILABLE_SCRIPTS[*]} " =~ " ${s} " ]]; then
     echo "❌ Script not found: $s"
     echo "Available scripts: ${AVAILABLE_SCRIPTS[*]}"
     exit 1
+  fi
+
+  if [ "$OVERLAY_ACTIVE" = true ] && [[ ! " ${OVERLAY_SCRIPTS[*]} " =~ " ${s} " ]]; then
+    echo "⚠ Overlay active: changes from $s are lost after reboot"
+    echo "  Run disable-overlay first (and reboot), then run $s"
   fi
 
   echo "▶ Running $s..."

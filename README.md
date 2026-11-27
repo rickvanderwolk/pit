@@ -6,6 +6,7 @@ Simple one-liner scripts to configure your Raspberry Pi directly, without downlo
 
 - [Usage](#-usage)
 - [Available Configurations](#-available-configurations)
+- [Read-only (overlay)](#-read-only-overlay)
 
 ## 🚀 Usage
 
@@ -17,10 +18,9 @@ curl -sSL https://raw.githubusercontent.com/rickvanderwolk/pit/main/run.sh | bas
 
 # Run multiple configurations:
 curl -sSL https://raw.githubusercontent.com/rickvanderwolk/pit/main/run.sh | bash -s disable-wifi-powersave enable-ssh-boost
-
-# Run all available configurations:
-curl -sSL https://raw.githubusercontent.com/rickvanderwolk/pit/main/run.sh | bash
 ```
+
+Without arguments, `run.sh` only shows the usage and the available scripts; it does not run anything. Name each configuration explicitly.
 
 Or clone and run locally:
 
@@ -45,3 +45,32 @@ cd pit
 ### Maintenance
 - **`enable-auto-cleanup`** - Setup automatic cleanup of packages and logs (weekly)
 - **`fix-locale`** - Fix locale warnings (generate en_US.UTF-8)
+
+### Read-only (overlay)
+- **`enable-overlay`** - Enable the Overlay File System (root fs in RAM, boot partition read-only)
+- **`disable-overlay`** - Disable the Overlay File System
+- **`overlay-status`** - Show overlay and boot partition state (now and after reboot)
+
+## 🔒 Read-only (overlay)
+
+The Overlay File System from `raspi-config` protects the SD card against corruption when the power is cut. All writes to the root fs go to RAM and are lost on reboot; the boot partition is mounted read-only. Requires Raspberry Pi OS (Bookworm or later) with more than 256 MB RAM.
+
+```bash
+./run.sh enable-overlay    # enable, then: sudo reboot
+./run.sh disable-overlay   # disable, then: sudo reboot
+./run.sh overlay-status    # show current state
+```
+
+Run `enable-overlay` as the last configuration, after all other scripts.
+
+Workflow for changes:
+
+1. `./run.sh disable-overlay`, then `sudo reboot`
+2. Make the changes
+3. `./run.sh enable-overlay`, then `sudo reboot`
+
+While the overlay is active, `raspi-config` cannot change `/etc/fstab`, so after the first reboot the boot partition is still read-only. Run `disable-overlay` again if `/boot/firmware` must be writable (e.g. for kernel updates via apt). To make it writable temporarily: `sudo mount -o remount,rw /boot/firmware`.
+
+`run.sh` shows a warning when another script is run while the overlay is active.
+
+`enable-auto-security-updates` and `enable-auto-cleanup` make little sense with the overlay enabled: installed updates are lost on reboot and fill up RAM in the meantime.
