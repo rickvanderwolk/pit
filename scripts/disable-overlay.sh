@@ -23,14 +23,21 @@ if [ "$OVERLAY_NOW" = "0" ]; then
   echo ""
   echo "⚠ Overlay still active: reboot required (sudo reboot)"
   echo "ℹ Boot partition stays read-only after this reboot."
-  echo "  Run this script again after reboot if /boot/firmware must be writable"
-  echo "  (e.g. for kernel updates via apt)"
+  echo "  Run this script again after reboot to make /boot/firmware writable"
+  echo "  (e.g. for kernel updates via apt) and to re-enable automatic updates"
 else
   if [ "$(sudo raspi-config nonint get_bootro_conf)" = "0" ]; then
     echo "⚠ Boot partition still read-only after reboot"
   else
     echo "✓ Boot partition writable after reboot"
   fi
+  # Re-enable automatic updates (disabled by enable-overlay)
+  for t in apt-daily.timer apt-daily-upgrade.timer; do
+    if systemctl cat "$t" &>/dev/null && ! systemctl is-enabled --quiet "$t" 2>/dev/null; then
+      sudo systemctl enable --now "$t" >/dev/null 2>&1
+      echo "✓ $t enabled"
+    fi
+  done
   if [ "$(sudo raspi-config nonint get_bootro_now)" = "0" ]; then
     echo "⚠ Reboot required: sudo reboot"
   fi

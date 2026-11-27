@@ -3,6 +3,7 @@ set -eo pipefail
 
 GITHUB_REPO="https://raw.githubusercontent.com/rickvanderwolk/pit/main"
 AVAILABLE_SCRIPTS=("disable-bluetooth" "disable-wifi-powersave" "enable-auto-cleanup" "enable-auto-security-updates" "enable-fail2ban" "enable-firewall" "enable-ssh-boost" "fix-locale" "enable-overlay" "disable-overlay" "overlay-status")
+BASE_SCRIPTS=("enable-firewall" "enable-fail2ban" "enable-auto-security-updates" "enable-auto-cleanup")
 OVERLAY_SCRIPTS=("enable-overlay" "disable-overlay" "overlay-status")
 
 # Detect if running locally or via curl
@@ -18,8 +19,19 @@ fi
 if [ $# -eq 0 ]; then
   echo "Usage: $0 <script1> [script2 ...]"
   echo "Available scripts: ${AVAILABLE_SCRIPTS[*]}"
+  echo "Presets: base (${BASE_SCRIPTS[*]})"
   exit 1
 fi
+
+# Expand presets
+SCRIPTS=()
+for a in "$@"; do
+  if [ "$a" = "base" ]; then
+    SCRIPTS+=("${BASE_SCRIPTS[@]}")
+  else
+    SCRIPTS+=("$a")
+  fi
+done
 
 # Overlay active: changes to the root fs are lost on reboot
 OVERLAY_ACTIVE=false
@@ -27,7 +39,7 @@ if command -v raspi-config &>/dev/null && [ "$(sudo raspi-config nonint get_over
   OVERLAY_ACTIVE=true
 fi
 
-for s in "$@"; do
+for s in "${SCRIPTS[@]}"; do
   if [[ ! " ${AVAILABLE_SCRIPTS[*]} " =~ " ${s} " ]]; then
     echo "❌ Script not found: $s"
     echo "Available scripts: ${AVAILABLE_SCRIPTS[*]}"
@@ -43,8 +55,7 @@ for s in "$@"; do
 
   if [ "$MODE" = "local" ]; then
     FILE="$DIR/scripts/$s.sh"
-    chmod +x "$FILE"
-    "$FILE"
+    bash "$FILE"
   else
     # Download and execute from GitHub
     curl -sSL "$GITHUB_REPO/scripts/$s.sh" | bash

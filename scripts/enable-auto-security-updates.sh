@@ -10,8 +10,11 @@ fi
 
 # Configure automatic security updates
 sudo tee /etc/apt/apt.conf.d/50unattended-upgrades >/dev/null <<'EOF'
-Unattended-Upgrade::Allowed-Origins {
-    "${distro_id}:${distro_codename}-security";
+Unattended-Upgrade::Origins-Pattern {
+    // 64-bit Raspberry Pi OS (Debian): security suite only
+    "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+    // 32-bit Raspberry Pi OS (Raspbian): no separate security suite, fixes land in the main suite
+    "origin=Raspbian,codename=${distro_codename},label=Raspbian";
 };
 Unattended-Upgrade::AutoFixInterruptedDpkg "true";
 Unattended-Upgrade::MinimalSteps "true";

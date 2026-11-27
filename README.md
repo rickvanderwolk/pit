@@ -20,6 +20,12 @@ curl -sSL https://raw.githubusercontent.com/rickvanderwolk/pit/main/run.sh | bas
 curl -sSL https://raw.githubusercontent.com/rickvanderwolk/pit/main/run.sh | bash -s disable-wifi-powersave enable-ssh-boost
 ```
 
+Run the base set (firewall, fail2ban, auto security updates, auto cleanup):
+
+```bash
+curl -sSL https://raw.githubusercontent.com/rickvanderwolk/pit/main/run.sh | bash -s base
+```
+
 Without arguments, `run.sh` only shows the usage and the available scripts; it does not run anything. Name each configuration explicitly.
 
 Or clone and run locally:
@@ -39,7 +45,7 @@ cd pit
 
 ### Performance
 - **`disable-bluetooth`** - Disable bluetooth service to save resources
-- **`disable-wifi-powersave`** - Disable WiFi power saving (prevents connection dropouts)
+- **`disable-wifi-powersave`** - Disable WiFi power saving (prevents connection dropouts; skipped without wifi)
 - **`enable-ssh-boost`** - Boost SSH service priority (improves SSH responsiveness)
 
 ### Maintenance
@@ -73,4 +79,4 @@ While the overlay is active, `raspi-config` cannot change `/etc/fstab`, so after
 
 `run.sh` shows a warning when another script is run while the overlay is active.
 
-`enable-auto-security-updates` and `enable-auto-cleanup` make little sense with the overlay enabled: installed updates are lost on reboot and fill up RAM in the meantime.
+Automatic updates make little sense with the overlay enabled: installed updates are lost on reboot and fill up RAM in the meantime. `enable-overlay` therefore disables the apt timers (`apt-daily`, `apt-daily-upgrade`); `disable-overlay` re-enables them once the overlay is no longer active. Plan a regular update round instead (overlay off, reboot, `sudo apt full-upgrade`, overlay on, reboot), more often for devices that run a browser.

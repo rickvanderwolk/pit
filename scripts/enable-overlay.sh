@@ -40,6 +40,14 @@ if [ "$(sudo raspi-config nonint get_overlay_conf)" != "0" ]; then
 fi
 
 echo "✓ Overlay enabled for next boot"
+
+# Automatic updates would reinstall into RAM after every reboot; disable while still persistent
+for t in apt-daily.timer apt-daily-upgrade.timer; do
+  if systemctl is-enabled --quiet "$t" 2>/dev/null; then
+    sudo systemctl disable --now "$t" >/dev/null 2>&1
+    echo "✓ $t disabled (re-enabled by disable-overlay)"
+  fi
+done
 if [ "$(sudo raspi-config nonint get_bootro_conf)" = "0" ]; then
   echo "✓ Boot partition read-only after reboot"
 else

@@ -4,8 +4,8 @@ set -e
 # Detect wifi interface
 WLAN=$(iw dev | awk '$1=="Interface"{print $2; exit}')
 if [ -z "$WLAN" ]; then
-  echo "❌ No wifi interface found"
-  exit 1
+  echo "ℹ No wifi interface found, skipping"
+  exit 0
 fi
 echo "📡 Found wifi interface: $WLAN"
 
